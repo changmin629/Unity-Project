@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 3635321427495911914}
   - component: {fileID: 565495946879336466}
   m_Layer: 0
-  m_Name: Weapon SubMachineGun (1)
+  m_Name: 'Weapon SubMachineGun '
   m_TagString: Weapon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -150,7 +150,7 @@ Transform:
   m_GameObject: {fileID: 3999132110048214529}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
