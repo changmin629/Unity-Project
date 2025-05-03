@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class Player1 : MonoBehaviour
 {
@@ -7,6 +9,7 @@ public class Player1 : MonoBehaviour
     public bool[] hasWeapons;
     public GameObject[] grenades;
     public int hasGrenades;
+    public GameObject grenadeObj;
     public Camera followCamera;
 
     public int ammo;
@@ -24,6 +27,7 @@ public class Player1 : MonoBehaviour
     bool wDown;
     bool jDown;
     bool fDown;
+    bool gDown;
     bool rDown;
     bool iDown;
     bool sDown1;
@@ -36,12 +40,14 @@ public class Player1 : MonoBehaviour
     bool isReload;
     bool isFireReady = true;
     bool isBorder;
+    bool isDamage;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Rigidbody rigid; 
     Animator anim;
+    SkinnedMeshRenderer[] meshs;
 
     GameObject nearObject;
     Weapon equipWeapon;
@@ -50,7 +56,8 @@ public class Player1 : MonoBehaviour
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
-        anim = GetComponentInChildren<Animator> ();
+        anim = GetComponentInChildren<Animator>();
+        meshs = GetComponentsInChildren<SkinnedMeshRenderer>();
     }
 
     void FreezeRotation()
@@ -74,6 +81,7 @@ public class Player1 : MonoBehaviour
         Move();
         Turn();
         Jump();
+        Grenade();
         Attack();
         Reload();
         Dodge();
@@ -88,6 +96,7 @@ public class Player1 : MonoBehaviour
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");
         fDown = Input.GetButton("Fire1");
+        gDown = Input.GetButtonDown("Fire2");
         rDown = Input.GetButtonDown("Reload");
         iDown = Input.GetButtonDown("Interation");
         sDown1 = Input.GetButtonDown("Swap1");
@@ -142,6 +151,31 @@ public class Player1 : MonoBehaviour
         }
     }
 
+    void Grenade()
+    {
+        if (hasGrenades == 0)
+            return;
+
+        if(gDown && !isReload && !isSwap)
+        {
+            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit rayHit;
+            if (Physics.Raycast(ray, out rayHit, 100))
+            {
+                Vector3 nextVec = rayHit.point - transform.position;
+                nextVec.y = 10;
+
+                GameObject instantGrenade = Instantiate(grenadeObj, transform.position, transform.rotation);
+                Rigidbody rigidGrenade = instantGrenade.GetComponent<Rigidbody>();
+                rigidGrenade.AddForce(nextVec, ForceMode.Impulse);
+                rigidGrenade.AddTorque(Vector3.back * 10, ForceMode.Impulse);
+
+                hasGrenades--;
+                grenades[hasGrenades].SetActive(false);
+
+            }
+        }
+    }
     void Attack()
     {
         if (equipWeapon == null)
@@ -259,7 +293,7 @@ public class Player1 : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Item")
         {
@@ -290,14 +324,47 @@ public class Player1 : MonoBehaviour
             }
             Destroy(other.gameObject);
         }
+        else if (other.tag == "EnemyBullet")
+        {
+            if (!isDamage)
+            {
+                Bullet enemyBullet = other.GetComponent<Bullet>();
+                health -= enemyBullet.damage;
+                StartCoroutine(OnDamage());
+            }
+            
+        }
+    }
+
+    IEnumerator OnDamage()
+    {
+        isDamage = true;
+
+        foreach(SkinnedMeshRenderer mesh in meshs)
+        {
+            mesh.material.color = Color.red;
+            Debug.Log("색상 변경 시도: " + mesh.gameObject.name);
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        isDamage = false;
+        foreach (SkinnedMeshRenderer mesh in meshs)
+        {
+            mesh.material.color = Color.white;
+            Debug.Log("색상 원복: " + mesh.gameObject.name);
+        }
+
+        
     }
 
     void OnTriggerStay(Collider other)
     {
         if(other.tag == "Weapon")
             nearObject = other.gameObject;
-
-        Debug.Log(nearObject.name);
+        if (nearObject != null)
+            Debug.Log(nearObject.name);
+       
     }
 
     void OnTriggerExit(Collider other)
