@@ -3,16 +3,23 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     public int damage;
+    public bool isMelee;
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.tag == "Floor")
+        if (collision.gameObject.tag == "Floor")
         {
             Destroy(gameObject, 3);
         }
-        else if (collision.gameObject.tag == "Wall")
+        
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (!isMelee && other.gameObject.tag == "Wall")
         {
             Destroy(gameObject);
+
         }
     }
 }
