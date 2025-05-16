@@ -16,6 +16,11 @@ public class Enemy : MonoBehaviour
     public GameObject bullet;
     public GameObject[] coins;
 
+    public AudioClip attackSound;     // 적이 공격할 때 나는 소리
+    public AudioClip hitSound;        // 적이 맞을 때 나는 소리
+    public AudioClip deathSound;      // 적이 죽을 때 나는 소리
+    private AudioSource audioSource;
+
     public bool isChase;
     public bool isAttack;
     public bool isDead;
@@ -36,6 +41,10 @@ public class Enemy : MonoBehaviour
 
         if(enemyType != Type.D)
             Invoke("ChaseStart", 2);
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void ChaseStart()
@@ -110,6 +119,9 @@ public class Enemy : MonoBehaviour
         isChase = false;
         isAttack = true;
         anim.SetBool("isAttack", true);
+
+        if (attackSound != null)
+            audioSource.PlayOneShot(attackSound);
 
         switch (enemyType)
         {
@@ -194,7 +206,10 @@ public class Enemy : MonoBehaviour
 
     IEnumerator OnDamage(Vector3 reactVec, bool isGrenade)
     {
-        foreach(MeshRenderer mesh in meshs)
+        if (hitSound != null && !isDead)
+            audioSource.PlayOneShot(hitSound);
+
+        foreach (MeshRenderer mesh in meshs)
             mesh.material.color = Color.red;
         yield return new WaitForSeconds(0.1f);
 
@@ -209,6 +224,9 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            if (deathSound != null)
+                audioSource.PlayOneShot(deathSound);
+
             foreach (MeshRenderer mesh in meshs)
                 mesh.material.color = Color.gray;
             gameObject.layer = 14;

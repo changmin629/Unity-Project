@@ -14,7 +14,17 @@ public class Shop : MonoBehaviour
     public Transform[] itemPos;
     public Text talkText;
 
+    public AudioClip buySound;           
+    private AudioSource audioSource;    
+
     Player enterPlayer;
+
+    void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+    }
 
     public void Enter(Player player)
     {
@@ -36,6 +46,10 @@ public class Shop : MonoBehaviour
             return;
         }
         enterPlayer.coin -= price;
+
+        if (buySound != null && audioSource != null)
+            audioSource.PlayOneShot(buySound);
+
         Vector3 ranVec = Vector3.right * Random.Range(-3, 3) + Vector3.forward * Random.Range(-3, 3);
         Instantiate(itemObj[index], itemPos[index].position + ranVec, itemPos[index].rotation);
     }

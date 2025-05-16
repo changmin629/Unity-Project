@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Weapon : MonoBehaviour
 {
-    public enum Type { Melee,Range};
+    public enum Type { Melee, Range };
     public Type type;
     public int damage;
     public float rate;
@@ -16,6 +16,15 @@ public class Weapon : MonoBehaviour
     public GameObject bullet;
     public Transform bulletCasePos;
     public GameObject bulletCase;
+
+    public AudioClip attackSound; 
+    private AudioSource audioSource;
+
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
     public void Use()
     {
         if (type == Type.Melee)
@@ -23,14 +32,17 @@ public class Weapon : MonoBehaviour
             StopCoroutine("Swing");
             StartCoroutine("Swing");
         }
-        else if(type == Type.Range && curAmmo > 0)
+        else if (type == Type.Range && curAmmo > 0)
         {
             curAmmo--;
             StartCoroutine("Shot");
         }
     }
+
     IEnumerator Swing()
     {
+        PlaySound();
+
         yield return new WaitForSeconds(0.1f);
         meleeArea.enabled = true;
         trailEffect.enabled = true;
@@ -42,15 +54,26 @@ public class Weapon : MonoBehaviour
         trailEffect.enabled = false;
     }
 
-    IEnumerator Shot() {
+    IEnumerator Shot()
+    {
+        PlaySound();
+
         GameObject intantBullet = Instantiate(bullet, bulletPos.position, bulletPos.rotation);
         Rigidbody bulletRigid = intantBullet.GetComponent<Rigidbody>();
         bulletRigid.linearVelocity = bulletPos.forward * 50;
+
         yield return null;
-        GameObject intantCase = Instantiate(bulletCase,bulletCasePos.position, bulletCasePos.rotation);
+
+        GameObject intantCase = Instantiate(bulletCase, bulletCasePos.position, bulletCasePos.rotation);
         Rigidbody caseRigid = intantCase.GetComponent<Rigidbody>();
-        Vector3 caseVec = bulletCasePos.forward * - Random.Range(-3,-2) + Vector3.up * Random.Range(2,3);
+        Vector3 caseVec = bulletCasePos.forward * -Random.Range(-3, -2) + Vector3.up * Random.Range(2, 3);
         caseRigid.AddForce(caseVec, ForceMode.Impulse);
-        caseRigid.AddTorque(Vector3.up * 10,ForceMode.Impulse);
+        caseRigid.AddTorque(Vector3.up * 10, ForceMode.Impulse);
+    }
+
+    void PlaySound()
+    {
+        if (audioSource != null && attackSound != null)
+            audioSource.PlayOneShot(attackSound);
     }
 }
