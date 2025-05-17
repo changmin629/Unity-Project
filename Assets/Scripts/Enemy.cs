@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
+    public GameObject poisonGasPrefab;
     public enum Type { A, B, C, D };
     public Type enemyType;
     public int maxHealth;
@@ -246,6 +247,7 @@ public class Enemy : MonoBehaviour
             switch (enemyType)
             {
                 case Type.A:
+                    Instantiate(poisonGasPrefab, transform.position, Quaternion.identity);
                     manager.enemyCntA--;
                     break;
                 case Type.B:
