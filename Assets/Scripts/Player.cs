@@ -218,12 +218,17 @@ public class Player : MonoBehaviour
 
         if (equipWeapon.type == Weapon.Type.Melee) return;
 
+        if(equipWeapon.curAmmo == equipWeapon.maxAmmo) return;
+
         if (ammo == 0) return;
+
+        if (isReload) return;
 
         if (rDown && !isJump && !isDodge && !isSwap && isFireReady && !isShop && !isDead)
         {
             anim.SetTrigger("doReload");
             isReload = true;
+            Debug.Log(isReload);
             Invoke("ReloadOut", 2f);
         }
     }
@@ -234,6 +239,7 @@ public class Player : MonoBehaviour
         equipWeapon.curAmmo = reAmmo;
         ammo -= reAmmo;
         isReload = false;
+        Debug.Log(isReload);
     }
     void Dodge()
     {
