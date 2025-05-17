@@ -206,6 +206,8 @@ public class Enemy : MonoBehaviour
 
     IEnumerator OnDamage(Vector3 reactVec, bool isGrenade)
     {
+        if (isDead) yield break;
+
         if (hitSound != null && !isDead)
             audioSource.PlayOneShot(hitSound);
 
@@ -224,6 +226,8 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            isDead = true;
+
             if (deathSound != null)
                 audioSource.PlayOneShot(deathSound);
 
@@ -231,7 +235,6 @@ public class Enemy : MonoBehaviour
                 mesh.material.color = Color.gray;
             gameObject.layer = 14;
 
-            isDead = true;
             isChase = false;
             nav.enabled = false;
             anim.SetTrigger("doDie");

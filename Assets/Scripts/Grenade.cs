@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Grenade : MonoBehaviour
 {
@@ -10,7 +11,6 @@ public class Grenade : MonoBehaviour
     void Start()
     {
         StartCoroutine(Explosion());
-        
     }
 
     IEnumerator Explosion()
@@ -21,17 +21,14 @@ public class Grenade : MonoBehaviour
         meshObj.SetActive(false);
         effectObj.SetActive(true);
 
-        RaycastHit[] rayHits = 
-            Physics.SphereCastAll(transform.position,
-            15, Vector3.up, 0f,
-            LayerMask.GetMask("Enemy"));
+        RaycastHit[] rayHits = Physics.SphereCastAll(transform.position, 15, Vector3.up, 0f, LayerMask.GetMask("Enemy"));
 
-        foreach(RaycastHit hitObj in rayHits)
+        foreach (RaycastHit hitObj in rayHits)
         {
-            hitObj.transform.GetComponent<Enemy>().HitByGrenade(transform.position);   
+            hitObj.transform.GetComponent<Enemy>().HitByGrenade(transform.position);
+
         }
 
         Destroy(gameObject, 5);
-
     }
 }
