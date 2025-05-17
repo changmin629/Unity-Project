@@ -13,6 +13,13 @@ public class Player : MonoBehaviour
     public Camera followCamera;
     public GameManager manager;
 
+    public AudioSource jumpSound;
+    public AudioSource dodgeSound;
+    public AudioSource interactionSound;
+    public AudioSource swapSound;
+
+
+
     public int ammo;
     public int coin;
     public int health;
@@ -58,6 +65,8 @@ public class Player : MonoBehaviour
     int equipWeaponIndex = -1;
     float fireDelay;
 
+    public Weapon equippedWeapon;
+
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
@@ -92,6 +101,10 @@ public class Player : MonoBehaviour
         Dodge();
         Swap();
         Interation();
+        if (Input.GetButtonDown("Fire1") && equippedWeapon != null)
+        {
+            equippedWeapon.Use();
+        }
     }
 
     void GetInput()
@@ -153,6 +166,8 @@ public class Player : MonoBehaviour
             anim.SetBool("isJump", true);
             anim.SetTrigger("doJump");
             isJump = true;
+
+            jumpSound.Play();
         }
     }
 
@@ -228,6 +243,8 @@ public class Player : MonoBehaviour
             anim.SetTrigger("doDodge");
             isDodge = true;
 
+            dodgeSound.Play();
+
             Invoke("DodgeOut", 0.6f);
         }
     }
@@ -266,7 +283,9 @@ public class Player : MonoBehaviour
             isSwap = true;
 
             Invoke("SwapOut", 0.4f);
+            swapSound.Play();
         }
+
     }
 
     void SwapOut()
@@ -292,7 +311,9 @@ public class Player : MonoBehaviour
                 shop.Enter(this);
                 isShop = true;
             }
+            interactionSound.Play();
         }
+        
     }
 
     void OnCollisionEnter(Collision collision)
@@ -412,5 +433,8 @@ public class Player : MonoBehaviour
             nearObject = null;
         }
     }
-
+    public void EquipWeapon(Weapon newWeapon)
+    {
+        equippedWeapon = newWeapon;
+    }
 }
