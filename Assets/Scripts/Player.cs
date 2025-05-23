@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
 
 public class Player : MonoBehaviour
 {
@@ -18,7 +19,9 @@ public class Player : MonoBehaviour
     public AudioSource interactionSound;
     public AudioSource swapSound;
 
-
+    public int level = 1;
+    public int currentExperience = 0;
+    public int maxExperience = 100; // 레벨업에 필요한 경험치 기본값 
 
     public int ammo;
     public int coin;
@@ -106,6 +109,31 @@ public class Player : MonoBehaviour
             equippedWeapon.Use();
         }
     }
+    // 경험치를 추가하는 함수
+    public void AddExperience(int exp)
+    {
+        currentExperience += exp;
+
+        // 여러 레벨업 처리
+        while (currentExperience >= maxExperience)
+        {
+            currentExperience -= maxExperience;
+            LevelUp();
+        }
+    }
+
+
+    void LevelUp()
+    {
+        level++;
+        currentExperience = 0;
+        maxExperience = level * 100;
+        maxHealth += 10;
+        health = maxHealth;
+    }
+
+
+
 
     void GetInput()
     {

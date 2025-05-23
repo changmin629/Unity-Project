@@ -49,6 +49,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI curScoreText;
     public TextMeshProUGUI bestText;
 
+    public RectTransform expGroup;
+    public Image expBar;
+
     void Awake()
     {
         enemyList = new List<int>();
@@ -226,6 +229,12 @@ public class GameManager : MonoBehaviour
         else
         {
             bossHealthGroup.anchoredPosition = Vector3.up * 200;
+        }
+
+        if (player != null && expBar != null)
+        {
+            float expRatio = (float)player.currentExperience / player.maxExperience;
+            expBar.fillAmount = Mathf.Clamp01(expRatio);
         }
 
     }

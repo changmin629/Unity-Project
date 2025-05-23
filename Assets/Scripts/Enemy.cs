@@ -26,6 +26,8 @@ public class Enemy : MonoBehaviour
     public NavMeshAgent nav;
     public Animator anim;
 
+    public int experiencePoints;
+
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
@@ -37,6 +39,7 @@ public class Enemy : MonoBehaviour
         if (enemyType != Type.D)
             Invoke("ChaseStart", 2);
     }
+
 
     void ChaseStart()
     {
@@ -226,6 +229,29 @@ public class Enemy : MonoBehaviour
             nav.enabled = false;
             anim.SetTrigger("doDie");
             Player player = Target.GetComponent<Player>();
+            
+            if (player != null)
+            {
+                // 적의 타입에 따라 경험치를 다르게 처리
+                int exp = 0;
+                switch (enemyType)
+                {
+                    case Type.A:
+                        exp = 10;
+                        break;
+                    case Type.B:
+                        exp = 20;
+                        break;
+                    case Type.C:
+                        exp = 40;
+                        break;
+                    case Type.D:
+                        exp = 100;  // Type.D의 적은 100 경험치를 줍니다.
+                        break;
+                }
+                player.AddExperience(exp);  // 경험치 추가
+            }
+
             player.score += score;
             int ranCoin = Random.Range(0, 3);
             Instantiate(coins[ranCoin], transform.position, Quaternion.identity);
