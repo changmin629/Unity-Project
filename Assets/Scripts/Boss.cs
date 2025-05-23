@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -12,7 +12,6 @@ public class Boss : Enemy
 
     Vector3 lookVec;
     Vector3 tauntVec;
-    
 
     void Awake()
     {
@@ -57,8 +56,6 @@ public class Boss : Enemy
         {
             case 0:
             case 1:
-                StartCoroutine(Think());
-                break;
             case 2:
                 StartCoroutine(MissileShot());
                 break;
@@ -75,16 +72,21 @@ public class Boss : Enemy
     {
         anim.SetTrigger("doShot");
         yield return new WaitForSeconds(0.2f);
-        GameObject instantMissileA = Instantiate(missile, missilePortA.position, missilePortA.rotation);
-        BossMissile bossMissileA = instantMissileA.GetComponent<BossMissile>();
-        bossMissileA.target = Target;
 
-        yield return new WaitForSeconds(0.3f);
-        GameObject instantMissileB = Instantiate(missile, missilePortA.position, missilePortA.rotation);
-        BossMissile bossMissileB = instantMissileB.GetComponent<BossMissile>();
-        bossMissileB.target = Target;
+        if (missile != null && missilePortA != null)
+        {
+            GameObject instantMissileA = Instantiate(missile, missilePortA.position, missilePortA.rotation);
+            BossMissile bossMissileA = instantMissileA.GetComponent<BossMissile>();
+            bossMissileA.target = Target;
+
+            yield return new WaitForSeconds(0.3f);
+
+            GameObject instantMissileB = Instantiate(missile, missilePortA.position, missilePortA.rotation);
+            BossMissile bossMissileB = instantMissileB.GetComponent<BossMissile>();
+            bossMissileB.target = Target;
+        }
+
         yield return new WaitForSeconds(2f);
-
         StartCoroutine(Think());
     }
 
@@ -92,11 +94,13 @@ public class Boss : Enemy
     {
         isLook = false;
         anim.SetTrigger("doBigShot");
-        Instantiate(bullet, transform.position, transform.rotation);
+
+        if (bullet != null)
+            Instantiate(bullet, transform.position, transform.rotation);
 
         yield return new WaitForSeconds(3f);
-
         isLook = true;
+
         StartCoroutine(Think());
     }
 
@@ -106,21 +110,41 @@ public class Boss : Enemy
 
         isLook = false;
         nav.isStopped = false;
-        boxCollider.enabled = false;
+
+        // 안전하게 비활성화 시도
+        if (boxCollider != null)
+        {
+            try { boxCollider.enabled = false; } catch { }
+        }
+
         anim.SetTrigger("doTaunt");
 
         yield return new WaitForSeconds(1.5f);
-        meleeArea.enabled = true;
+
+        if (meleeArea != null)
+            meleeArea.enabled = true;
 
         yield return new WaitForSeconds(0.5f);
-        meleeArea.enabled = false;
+
+        if (meleeArea != null)
+            meleeArea.enabled = false;
 
         yield return new WaitForSeconds(1f);
 
         isLook = true;
         nav.isStopped = true;
-        boxCollider.enabled = true;
+
+        if (boxCollider != null)
+        {
+            try { boxCollider.enabled = true; } catch { }
+        }
+
         StartCoroutine(Think());
     }
+
+    void OnDestroy()
+    {
+        StopAllCoroutines();
+    }
 }
-    
+

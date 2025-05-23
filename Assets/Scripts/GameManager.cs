@@ -52,10 +52,11 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         enemyList = new List<int>();
-        maxScoreTxt.text = string.Format("{0:n0}", PlayerPrefs.GetInt("MaxScore"));
 
-        if (PlayerPrefs.HasKey("MaxScore"))
+        if (!PlayerPrefs.HasKey("MaxScore"))
             PlayerPrefs.SetInt("MaxScore", 0);
+
+        maxScoreTxt.text = string.Format("{0:n0}", PlayerPrefs.GetInt("MaxScore"));
     }
 
     public void GameStart()
@@ -75,13 +76,14 @@ public class GameManager : MonoBehaviour
         overPanel.SetActive(true);
         curScoreText.text = scoreTxt.text;
 
-        int maxScore = PlayerPrefs.GetInt("MaxsScore");
+        bestText.gameObject.SetActive(false);
+
+        int maxScore = PlayerPrefs.GetInt("MaxScore", 0);
         if (player.score > maxScore)
         {
             bestText.gameObject.SetActive(true);
-            PlayerPrefs.SetInt("MaxsScore", player.score);
+            PlayerPrefs.SetInt("MaxScore", player.score);
         }
-
     }
 
     public void Restart()
@@ -95,7 +97,7 @@ public class GameManager : MonoBehaviour
         weaponShop.SetActive(false);
         startZone.SetActive(false);
 
-        foreach(Transform zone in  enemyZones)
+        foreach (Transform zone in enemyZones)
             zone.gameObject.SetActive(true);
 
         isBattle = true;
@@ -115,83 +117,83 @@ public class GameManager : MonoBehaviour
 
         isBattle = false;
         stage++;
-
     }
 
     IEnumerator InBattle()
     {
-            if (stage % 5 == 0)
+        if (stage % 5 == 0)
+        {
+            enemyCntD++;
+            GameObject instantEnemy = Instantiate(enemies[3], enemyZones[0].position, enemyZones[0].rotation);
+            Enemy enemy = instantEnemy.GetComponent<Enemy>();
+            enemy.Target = player.transform;
+            enemy.manager = this;   //GameManager 보내주기
+            boss = instantEnemy.GetComponent<Boss>();
+        }
+        else
+        {
+            for (int index = 0; index < stage; index++)
             {
-                enemyCntD++;
-                GameObject instantEnemy = Instantiate(enemies[3], enemyZones[0].position, enemyZones[0].rotation);
+                int ran = Random.Range(0, 3);
+                enemyList.Add(ran);
+
+                switch (ran)
+                {
+                    case 0:
+                        enemyCntA++;
+                        break;
+                    case 1:
+                        enemyCntB++;
+                        break;
+                    case 2:
+                        enemyCntC++;
+                        break;
+                }
+            }
+
+            while (enemyList.Count > 0)
+            {
+                int ranZone = Random.Range(0, 4);
+                GameObject instantEnemy = Instantiate(enemies[enemyList[0]], enemyZones[ranZone].position, enemyZones[ranZone].rotation);
                 Enemy enemy = instantEnemy.GetComponent<Enemy>();
                 enemy.Target = player.transform;
                 enemy.manager = this;   //GameManager 보내주기
-                boss = instantEnemy.GetComponent<Boss>();
+                enemyList.RemoveAt(0);
+                yield return new WaitForSeconds(4f);
             }
-            else
-            {
-                for (int index = 0; index < stage; index++)
-                {
-                    int ran = Random.Range(0, 3);
-                    enemyList.Add(ran);
+        }
 
-                    switch (ran)
-                    {
-                        case 0:
-                            enemyCntA++;
-                            break;
-                        case 1:
-                            enemyCntB++;
-                            break;
-                        case 2:
-                            enemyCntC++;
-                            break;
-                    }
-                }
+        while (enemyCntA + enemyCntB + enemyCntC + enemyCntD > 0)
+        {
+            yield return null;
+        }
 
-                while (enemyList.Count > 0)
-                {
-                    int ranZone = Random.Range(0, 4);
-                    GameObject instantEnemy = Instantiate(enemies[enemyList[0]], enemyZones[ranZone].position, enemyZones[ranZone].rotation);
-                    Enemy enemy = instantEnemy.GetComponent<Enemy>();
-                    enemy.Target = player.transform;
-                    enemy.manager = this;   //GameManager 보내주기
-                    enemyList.RemoveAt(0);
-                    yield return new WaitForSeconds(4f);
-                }
-            }
-
-            while (enemyCntA + enemyCntB + enemyCntC + enemyCntD > 0)
-            {
-                yield return null;
-            }
-
-            yield return new WaitForSeconds(4f);
-            boss = null;
-            StageEnd();
+        yield return new WaitForSeconds(4f);
+        boss = null;
+        StageEnd();
     }
 
-    private void Update()
+    void Update()
     {
         if (isBattle)
-        {
             playTime += Time.deltaTime;
-        }
     }
+
     void LateUpdate()
     {
+        //좌측 상단 UI
         scoreTxt.text = string.Format("{0:n0}", player.score);
-        stageTxt.text = "STAGE " + stage;
 
-        int hour = (int)(playTime / 3600);
-        int min = (int)((playTime - hour * 3600) / 60);
-        int second = (int)(playTime % 60);
+        //우측 상단 UI
+        stageTxt.text = "STAGE " + stage;
+        int hour = (int)(playTime / 3600);  //시
+        int min = (int)((playTime - hour * 3600) / 60);   //분
+        int second = (int)(playTime % 60);  //초
         playTimeTxt.text = string.Format("{0:00}", hour) + ":" + string.Format("{0:00}", min) + ":" + string.Format("{0:00}", second);
 
+        //플레이어(좌측 하단) UI
         playerHealthTxt.text = player.health + " / " + player.maxHealth;
         playerCoinTxt.text = string.Format("{0:n0}", player.coin);
-        
         if (player.equipWeapon == null)
             playerAmmoTxt.text = "- / " + player.ammo;
         else if (player.equipWeapon.type == Weapon.Type.Melee)
@@ -199,24 +201,32 @@ public class GameManager : MonoBehaviour
         else
             playerAmmoTxt.text = player.equipWeapon.curAmmo + " / " + player.ammo;
 
-        weapon1Img.color = new Color(1, 1, 1, player.hasWeapons[0] ? 1 : 0);
-        weapon2Img.color = new Color(1, 1, 1, player.hasWeapons[1] ? 1 : 0);
-        weapon3Img.color = new Color(1, 1, 1, player.hasWeapons[2] ? 1 : 0);
-        weaponRImg.color = new Color(1, 1, 1, player.hasGrenades > 0 ? 1 : 0);
+        //무기(중앙 하단) UI
+        weapon1Img.color = new Color(1, 1, 1, (player.hasWeapons[0] ? 1 : 0));
+        weapon2Img.color = new Color(1, 1, 1, (player.hasWeapons[1] ? 1 : 0));
+        weapon3Img.color = new Color(1, 1, 1, (player.hasWeapons[2] ? 1 : 0));
+        weaponRImg.color = new Color(1, 1, 1, (player.hasGrenades > 0 ? 1 : 0));
 
+        //몬스터 숫자(우측 하단) UI
         enemyATxt.text = enemyCntA.ToString();
         enemyBTxt.text = enemyCntB.ToString();
         enemyCTxt.text = enemyCntC.ToString();
 
-        if(boss != null)
+        //보스 체력(중앙 상단) UI
+        if (boss != null)
         {
             bossHealthGroup.anchoredPosition = Vector3.down * 30;
-            float ratio = Mathf.Max(0f, (float)boss.curHealth / boss.maxHealth);
-            bossHealthBar.localScale = new Vector3(ratio, 1, 1);
+
+            // 체력 비율 계산 (0 이하로 내려가지 않도록 Mathf.Clamp 사용)
+            float bossHpRatio = Mathf.Clamp((float)boss.curHealth / boss.maxHealth, 0f, 1f);
+
+            // 체력바 스케일 적용
+            bossHealthBar.localScale = new Vector3(bossHpRatio, 1, 1);
         }
         else
         {
             bossHealthGroup.anchoredPosition = Vector3.up * 200;
         }
+
     }
 }

@@ -858,6 +858,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 453f563056f8e1549a82220bf783608b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  poisonGasPrefab: {fileID: 0}
   enemyType: 3
   maxHealth: 100
   curHealth: 100

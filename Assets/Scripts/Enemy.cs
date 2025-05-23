@@ -5,7 +5,6 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    public GameObject poisonGasPrefab;
     public enum Type { A, B, C, D };
     public Type enemyType;
     public int maxHealth;
@@ -16,11 +15,6 @@ public class Enemy : MonoBehaviour
     public BoxCollider meleeArea;
     public GameObject bullet;
     public GameObject[] coins;
-
-    public AudioClip attackSound;     // 적이 공격할 때 나는 소리
-    public AudioClip hitSound;        // 적이 맞을 때 나는 소리
-    public AudioClip deathSound;      // 적이 죽을 때 나는 소리
-    private AudioSource audioSource;
 
     public bool isChase;
     public bool isAttack;
@@ -40,12 +34,8 @@ public class Enemy : MonoBehaviour
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
 
-        if(enemyType != Type.D)
+        if (enemyType != Type.D)
             Invoke("ChaseStart", 2);
-
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void ChaseStart()
@@ -60,7 +50,7 @@ public class Enemy : MonoBehaviour
             nav.SetDestination(Target.position);
             nav.isStopped = !isChase;
         }
-             
+
     }
 
     void FreezeVelocity()
@@ -70,12 +60,12 @@ public class Enemy : MonoBehaviour
             rigid.linearVelocity = Vector3.zero;
             rigid.angularVelocity = Vector3.zero;
         }
-       
+
     }
 
     void Targerting()
     {
-        if(!isDead && enemyType != Type.D)
+        if (!isDead && enemyType != Type.D)
         {
             float targetRadious = 1.5f;
             float targetRange = 3f;
@@ -112,7 +102,7 @@ public class Enemy : MonoBehaviour
                 StartCoroutine(Attack());
             }
         }
-        
+
     }
 
     IEnumerator Attack()
@@ -120,9 +110,6 @@ public class Enemy : MonoBehaviour
         isChase = false;
         isAttack = true;
         anim.SetBool("isAttack", true);
-
-        if (attackSound != null)
-            audioSource.PlayOneShot(attackSound);
 
         switch (enemyType)
         {
@@ -161,8 +148,8 @@ public class Enemy : MonoBehaviour
 
                 break;
         }
-        
-    
+
+
 
         isChase = true;
         isAttack = false;
@@ -173,22 +160,24 @@ public class Enemy : MonoBehaviour
     {
         Targerting();
         FreezeVelocity();
-        
+
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if(other.tag == "Melee"){
+        if (other.tag == "Melee")
+        {
             Weapon weapon = other.GetComponent<Weapon>();
             curHealth -= weapon.damage;
             Vector3 reactVec = transform.position - other.transform.position;
-            
+
 
             StartCoroutine(OnDamage(reactVec, false));
-           
+
 
         }
-        else if (other.tag == "Bullet"){
+        else if (other.tag == "Bullet")
+        {
             Bullet bullet = other.GetComponent<Bullet>();
             curHealth -= bullet.damage;
             Vector3 reactVec = transform.position - other.transform.position;
@@ -207,19 +196,18 @@ public class Enemy : MonoBehaviour
 
     IEnumerator OnDamage(Vector3 reactVec, bool isGrenade)
     {
-        if (isDead) yield break;
-
-        if (hitSound != null && !isDead)
-            audioSource.PlayOneShot(hitSound);
+        // 이미 죽은 적이라면 피해 무시
+        if (isDead)
+            yield break;
 
         foreach (MeshRenderer mesh in meshs)
             mesh.material.color = Color.red;
         yield return new WaitForSeconds(0.1f);
 
-        if(curHealth > 0)
+        if (curHealth > 0)
         {
             yield return new WaitForSeconds(0.1f);
-            
+
             if (isDead)
                 yield break;
             foreach (MeshRenderer mesh in meshs)
@@ -229,13 +217,11 @@ public class Enemy : MonoBehaviour
         {
             isDead = true;
 
-            if (deathSound != null)
-                audioSource.PlayOneShot(deathSound);
-
             foreach (MeshRenderer mesh in meshs)
                 mesh.material.color = Color.gray;
             gameObject.layer = 14;
 
+            
             isChase = false;
             nav.enabled = false;
             anim.SetTrigger("doDie");
@@ -247,7 +233,6 @@ public class Enemy : MonoBehaviour
             switch (enemyType)
             {
                 case Type.A:
-                    Instantiate(poisonGasPrefab, transform.position, Quaternion.identity);
                     manager.enemyCntA--;
                     break;
                 case Type.B:
@@ -284,7 +269,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
- }
+}
 
-    
-   
+
+

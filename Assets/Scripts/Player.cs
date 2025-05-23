@@ -51,7 +51,7 @@ public class Player : MonoBehaviour
     bool isBorder;
     bool isDamage;
     bool isShop;
-    bool isDead;
+    bool isDead = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
