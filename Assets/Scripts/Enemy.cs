@@ -15,6 +15,7 @@ public class Enemy : MonoBehaviour
     public BoxCollider meleeArea;
     public GameObject bullet;
     public GameObject[] coins;
+    public GameObject poisonGas;
 
     public AudioClip attackSound;     // 적이 공격할 때 나는 소리
     public AudioClip hitSound;        // 적이 맞을 때 나는 소리
@@ -272,6 +273,7 @@ public class Enemy : MonoBehaviour
             {
                 case Type.A:
                     manager.enemyCntA--;
+                    Instantiate(poisonGas,transform.position, Quaternion.identity);
                     break;
                 case Type.B:
                     manager.enemyCntB--;

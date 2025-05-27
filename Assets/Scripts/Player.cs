@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
@@ -13,6 +15,7 @@ public class Player : MonoBehaviour
     public GameObject grenadeObj;
     public Camera followCamera;
     public GameManager manager;
+
 
     public AudioSource jumpSound;
     public AudioSource dodgeSound;
@@ -45,6 +48,7 @@ public class Player : MonoBehaviour
     bool sDown1;
     bool sDown2;
     bool sDown3;
+    bool escDown;
 
     bool isJump;
     bool isDodge;
@@ -55,6 +59,7 @@ public class Player : MonoBehaviour
     bool isDamage;
     bool isShop;
     bool isDead = false;
+    bool isPause = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
@@ -104,6 +109,7 @@ public class Player : MonoBehaviour
         Dodge();
         Swap();
         Interation();
+        Pause();
         if (Input.GetButtonDown("Fire1") && equippedWeapon != null)
         {
             equippedWeapon.Use();
@@ -132,8 +138,31 @@ public class Player : MonoBehaviour
         health = maxHealth;
     }
 
+    public void Save()
+    {
+        isPause = false;
+        PlayerPrefs.SetInt("HasGrenades", hasGrenades);
+        PlayerPrefs.SetInt("Level", level);
+        PlayerPrefs.SetInt("CurrentExperience", currentExperience);
+        PlayerPrefs.SetInt("MaxExperience", maxExperience);
+        PlayerPrefs.SetInt("Ammo", ammo);
+        PlayerPrefs.SetInt("Coin", coin);
+        PlayerPrefs.SetInt("Health", health);
+        PlayerPrefs.SetInt("MaxHealth", maxHealth);
+        PlayerPrefs.SetInt("Score", score);
+        SaveWeapons(hasWeapons);
+    }
 
-
+    public void SaveWeapons(bool[] hasWeapons)
+    {
+        string weaponData = "";
+        foreach (bool has in hasWeapons)
+        {
+            weaponData += has ? "1" : "0";
+        }
+        PlayerPrefs.SetString("HasWeapons", weaponData);
+        PlayerPrefs.Save();
+    }
 
     void GetInput()
     {
@@ -148,6 +177,23 @@ public class Player : MonoBehaviour
         sDown1 = Input.GetButtonDown("Swap1");
         sDown2 = Input.GetButtonDown("Swap2");
         sDown3 = Input.GetButtonDown("Swap3");
+        escDown = Input.GetButtonDown("Pause");
+    }
+
+    void Pause()
+    {
+        if (!escDown || manager.isBattle)
+            return;
+        if (isPause)
+        {
+            isPause = false;
+            manager.pausePanel.SetActive(false);
+        }
+        else if (!isPause)
+        {
+            isPause = true;
+            manager.pausePanel.SetActive(true);
+        }
     }
 
 
@@ -158,7 +204,7 @@ public class Player : MonoBehaviour
         if (isDodge)
             moveVec = dodgeVec;
 
-        if (isSwap || !isFireReady || isReload || isDead)
+        if (isSwap || !isFireReady || isReload || isDead || isPause)
             moveVec = Vector3.zero;
 
         if (!isBorder)
@@ -172,7 +218,7 @@ public class Player : MonoBehaviour
     {
         transform.LookAt(transform.position + moveVec);
 
-        if (fDown && !isDead)
+        if (fDown && !isDead && !isPause)
         {
             Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit rayHit;
@@ -188,7 +234,7 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
-        if (jDown && moveVec == Vector3.zero && !isJump && !isDodge && !isSwap && !isDead)
+        if (jDown && moveVec == Vector3.zero && !isJump && !isDodge && !isSwap && !isDead && !isPause)
         {
             rigid.AddForce(Vector3.up * 15, ForceMode.Impulse);
             anim.SetBool("isJump", true);
@@ -204,7 +250,7 @@ public class Player : MonoBehaviour
         if (hasGrenades == 0)
             return;
 
-        if (gDown && !isReload && !isSwap && !isDead)
+        if (gDown && !isReload && !isSwap && !isDead && !isPause)
         {
             Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit rayHit;
@@ -232,7 +278,7 @@ public class Player : MonoBehaviour
         fireDelay += Time.deltaTime;
         isFireReady = equipWeapon.rate < fireDelay;
 
-        if (fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead)
+        if (fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead && !isPause)
         {
             equipWeapon.Use();
             anim.SetTrigger(equipWeapon.type == Weapon.Type.Melee ? "doSwing" : "doShot");
@@ -252,7 +298,7 @@ public class Player : MonoBehaviour
 
         if (isReload) return;
 
-        if (rDown && !isJump && !isDodge && !isSwap && isFireReady && !isShop && !isDead)
+        if (rDown && !isJump && !isDodge && !isSwap && isFireReady && !isShop && !isDead && !isPause)
         {
             anim.SetTrigger("doReload");
             isReload = true;
@@ -263,15 +309,23 @@ public class Player : MonoBehaviour
 
     void ReloadOut()
     {
-        int reAmmo = ammo < equipWeapon.maxAmmo ? ammo : equipWeapon.maxAmmo;
-        equipWeapon.curAmmo = reAmmo;
-        ammo -= reAmmo;
+        int reAmmo =  equipWeapon.maxAmmo;
+        int needAmmo = reAmmo - equipWeapon.curAmmo;
+        if (needAmmo > ammo)
+        {
+            equipWeapon.curAmmo += ammo;
+            ammo = 0;
+        }
+        else
+        {
+            equipWeapon.curAmmo = equipWeapon.maxAmmo;
+            ammo -= needAmmo;
+        }
         isReload = false;
-        Debug.Log(isReload);
     }
     void Dodge()
     {
-        if (jDown && moveVec != Vector3.zero && !isJump && !isDodge && !isSwap && !isShop && !isDead)
+        if (jDown && moveVec != Vector3.zero && !isJump && !isDodge && !isSwap && !isShop && !isDead && !isPause)
         {
             dodgeVec = moveVec;
             speed *= 2;
@@ -304,7 +358,7 @@ public class Player : MonoBehaviour
         if (sDown2) weaponIndex = 1;
         if (sDown3) weaponIndex = 2;
 
-        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isShop && !isDead)
+        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isShop && !isDead && !isPause)
         {
             if (equipWeapon != null)
                 equipWeapon.gameObject.SetActive(false);
@@ -330,7 +384,7 @@ public class Player : MonoBehaviour
 
     void Interation()
     {
-        if (iDown && nearObject != null && !isJump && !isDodge && !isDead)
+        if (iDown && nearObject != null && !isJump && !isDodge && !isDead && !isPause)
         {
             if (nearObject.tag == "Weapon")
             {
@@ -471,5 +525,14 @@ public class Player : MonoBehaviour
     public void EquipWeapon(Weapon newWeapon)
     {
         equippedWeapon = newWeapon;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        health -= amount;
+        if (health <= 0)
+        {
+            OnDie();
+        }
     }
 }
