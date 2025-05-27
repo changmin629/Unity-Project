@@ -1,9 +1,25 @@
 using UnityEngine;
 
-public class poisiongas : MonoBehaviour
+public class PoisonGas : MonoBehaviour
 {
-    void Start()
+    public int duration = 5; // 유지 시간
+    public int damagePerSecond = 1;
+
+    private float damageInterval = 0.5f;
+    private float nextDamageTime = 0f;
+
+    private void Start()
     {
-        Destroy(gameObject, 5f);
+        Destroy(gameObject, duration);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        Player hp = other.GetComponent<Player>();
+        if (hp != null && Time.time >= nextDamageTime)
+        {
+            hp.TakeDamage(damagePerSecond);
+            nextDamageTime = Time.time + damageInterval;
+        }
     }
 }

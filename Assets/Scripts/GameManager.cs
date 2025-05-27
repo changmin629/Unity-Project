@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
@@ -30,6 +31,7 @@ public class GameManager : MonoBehaviour
     public GameObject menuPanel;
     public GameObject gamePanel;
     public GameObject overPanel;
+    public GameObject pausePanel;
     public TextMeshProUGUI maxScoreTxt;
     public TextMeshProUGUI scoreTxt;
     public TextMeshProUGUI stageTxt;
@@ -48,6 +50,8 @@ public class GameManager : MonoBehaviour
     public RectTransform bossHealthBar;
     public TextMeshProUGUI curScoreText;
     public TextMeshProUGUI bestText;
+    public TextMeshProUGUI PausebestText;
+    public TextMeshProUGUI PauseText;
 
     public RectTransform expGroup;
     public Image expBar;
@@ -55,7 +59,6 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         enemyList = new List<int>();
-
         if (!PlayerPrefs.HasKey("MaxScore"))
             PlayerPrefs.SetInt("MaxScore", 0);
 
@@ -64,6 +67,7 @@ public class GameManager : MonoBehaviour
 
     public void GameStart()
     {
+        Re();
         menuCam.SetActive(false);
         gameCam.SetActive(true);
 
@@ -71,6 +75,77 @@ public class GameManager : MonoBehaviour
         gamePanel.SetActive(true);
 
         player.gameObject.SetActive(true);
+    }
+
+    public void GameQuit()
+    {
+        #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+                Application.Quit();
+        #endif
+    }
+
+    public void GameContinue()
+    {
+        Load();
+        if (!PlayerPrefs.HasKey("Score"))
+            return;
+        menuCam.SetActive(false);
+        gameCam.SetActive(true);
+
+        menuPanel.SetActive(false);
+        gamePanel.SetActive(true);
+
+        player.gameObject.SetActive(true);
+    }
+
+    void Re()
+    {
+        player.gameObject.SetActive(false);
+        int maxScore = PlayerPrefs.GetInt("MaxScore");
+        PlayerPrefs.DeleteAll();
+        PlayerPrefs.SetInt("MaxScore",maxScore);
+        stage = 1;
+        playTime = 0;
+        player.hasGrenades = 0;
+        player.level = 1;
+        player.currentExperience = 0;
+        player.maxExperience = 100;
+        player.ammo = 0;
+        player.coin = 5500;
+        player.health = 100;
+        player.maxHealth = 100;
+        player.score = 0;
+        player.hasWeapons = new bool[] { false, false, false };
+        player.hasWeapons = LoadWeapons(3);
+    }
+    void Load()
+    {
+        stage = PlayerPrefs.GetInt("Stage");
+        playTime = PlayerPrefs.GetFloat("PlayTime");
+        player.hasGrenades = PlayerPrefs.GetInt("HasGrenades");
+        player.level = PlayerPrefs.GetInt("Level");
+        player.currentExperience = PlayerPrefs.GetInt("CurrentExperience");
+        player.maxExperience = PlayerPrefs.GetInt("MaxExperience");
+        player.ammo =  PlayerPrefs.GetInt("Ammo");
+        player.coin = PlayerPrefs.GetInt("Coin");
+        player.health = PlayerPrefs.GetInt("Health");
+        player.maxHealth = PlayerPrefs.GetInt("MaxHealth");
+        player.score =  PlayerPrefs.GetInt("Score");
+        player.hasWeapons = LoadWeapons(3);
+    }
+    public bool[] LoadWeapons(int weaponCount)
+    {
+        string weaponData = PlayerPrefs.GetString("HasWeapons", new string('0', weaponCount));
+        bool[] hasWeapons = new bool[weaponCount];
+
+        for (int i = 0; i < weaponCount && i < weaponData.Length; i++)
+        {
+            hasWeapons[i] = weaponData[i] == '1';
+        }
+
+        return hasWeapons;
     }
 
     public void GameOver()
@@ -87,6 +162,19 @@ public class GameManager : MonoBehaviour
             bestText.gameObject.SetActive(true);
             PlayerPrefs.SetInt("MaxScore", player.score);
         }
+    }
+
+    public void GameReturn()
+    {
+        menuCam.SetActive(true);
+        gameCam.SetActive(false);
+        menuPanel.SetActive(true);
+        gamePanel.SetActive(false);
+        pausePanel.SetActive(false);
+        PlayerPrefs.SetInt("Stage", stage);
+        PlayerPrefs.SetFloat("PlayTime", playTime);
+        player.Save();
+        player.gameObject.SetActive(false);
     }
 
     public void Restart()
@@ -185,7 +273,14 @@ public class GameManager : MonoBehaviour
     void LateUpdate()
     {
         //좌측 상단 UI
+        int maxscore = PlayerPrefs.GetInt("MaxScore", 0);
         scoreTxt.text = string.Format("{0:n0}", player.score);
+        PausebestText.text = string.Format("Best:{0:n0}", maxscore);
+        PauseText.text = string.Format("Now:{0:n0}", player.score);
+        if (player.score > maxscore)
+        {
+            PausebestText.text = string.Format("Best:{0:n0}", player.score);
+        }
 
         //우측 상단 UI
         stageTxt.text = "STAGE " + stage;
