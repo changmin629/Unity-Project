@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
-using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
@@ -30,7 +29,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject menuPanel;
     public GameObject gamePanel;
-    public GameObject overPanel;
+    public GameObject overPanel; 
     public GameObject pausePanel;
     public TextMeshProUGUI maxScoreTxt;
     public TextMeshProUGUI scoreTxt;
@@ -52,6 +51,11 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI bestText;
     public TextMeshProUGUI PausebestText;
     public TextMeshProUGUI PauseText;
+
+    public GameObject levelUpGroup; // Level Up Group GameObject에 대한 참조
+    public Button itemUpgradeButtonA; // Item Upgrade Button A에 대한 참조
+    public Button itemUpgradeButtonB; // Item Upgrade Button B에 대한 참조
+    public Button itemUpgradeButtonC; // Item Upgrade Button C에 대한 참조
 
     public RectTransform expGroup;
     public Image expBar;
@@ -146,6 +150,37 @@ public class GameManager : MonoBehaviour
         }
 
         return hasWeapons;
+    }
+
+    public void ShowLevelUpPanel()
+    {
+        levelUpGroup.SetActive(true); // 레벨업 패널 활성화
+
+        RectTransform levelUpRect = levelUpGroup.GetComponent<RectTransform>();
+        if (levelUpRect != null)
+        {
+            levelUpRect.anchoredPosition = Vector3.zero;
+        }
+
+
+        // 업그레이드 버튼에 리스너 할당
+        itemUpgradeButtonA.onClick.RemoveAllListeners(); // 기존 리스너 지우기
+        itemUpgradeButtonA.onClick.AddListener(() => OnUpgradeSelected(0)); 
+
+        itemUpgradeButtonB.onClick.RemoveAllListeners();
+        itemUpgradeButtonB.onClick.AddListener(() => OnUpgradeSelected(1)); 
+
+        itemUpgradeButtonC.onClick.RemoveAllListeners();
+        itemUpgradeButtonC.onClick.AddListener(() => OnUpgradeSelected(2)); 
+    }
+
+    public void OnUpgradeSelected(int selection)
+    {
+        // 선택에 따라 업그레이드 적용
+        player.ApplyUpgrade(selection);
+
+        levelUpGroup.SetActive(false); // 레벨업 패널 비활성화
+        Time.timeScale = 1f; // 게임 시간 재개
     }
 
     public void GameOver()

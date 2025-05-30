@@ -8,14 +8,14 @@ public class Shop : MonoBehaviour
 {
     public RectTransform uiGroup;
     public Animator anim;
-    
+
     public GameObject[] itemObj;
-    public int[ ] itemPrice;
+    public int[] itemPrice;
     public Transform[] itemPos;
     public Text talkText;
 
-    public AudioClip buySound;           
-    private AudioSource audioSource;    
+    public AudioClip buySound;
+    private AudioSource audioSource;
 
     Player enterPlayer;
 
@@ -41,7 +41,7 @@ public class Shop : MonoBehaviour
     public void Buy(int index)
     {
         int price = itemPrice[index];
-        if(price > enterPlayer.coin)
+        if (price > enterPlayer.coin)
         {
             return;
         }
