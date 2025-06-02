@@ -557,7 +557,6 @@ public class Player : MonoBehaviour
         foreach (MeshRenderer mesh in meshs) // 모든 MeshRenderer에 대해
         {
             mesh.material.color = Color.red; // 색상 빨간색으로 변경
-            Debug.Log("���� ���� �õ�: " + mesh.gameObject.name); // 로그 출력
         }
         if (isBossAtk) // 보스 공격이면
         {
@@ -574,7 +573,6 @@ public class Player : MonoBehaviour
         foreach (MeshRenderer mesh in meshs) // 모든 MeshRenderer에 대해
         {
             mesh.material.color = Color.white; // 색상 흰색으로 변경
-            Debug.Log("���� ����: " + mesh.gameObject.name); // 로그 출력
         }
 
         if (isBossAtk) // 보스 공격이면
